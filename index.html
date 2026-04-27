@@ -3,117 +3,240 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>TMF Live</title>
+<title>TMF Pro</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
 body{
-font-family:Inter,sans-serif;
+font-family:'Inter',sans-serif;
+background:linear-gradient(135deg,#05070d,#0f172a,#111827);
 min-height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
 padding:20px;
-background:linear-gradient(135deg,#05070d,#0f172a,#111827);
-color:#fff;
+color:white;
+overflow:hidden;
 }
+
+body::before,
+body::after{
+content:'';
+position:fixed;
+width:350px;
+height:350px;
+border-radius:50%;
+filter:blur(120px);
+opacity:.35;
+z-index:0;
+animation:float 10s ease-in-out infinite;
+}
+
+body::before{
+background:#00ffd0;
+top:-120px;
+left:-120px;
+}
+
+body::after{
+background:#3b82f6;
+bottom:-120px;
+right:-120px;
+animation-delay:2s;
+}
+
+@keyframes float{
+0%,100%{transform:translate(0,0);}
+50%{transform:translate(50px,35px);}
+}
+
 .card{
+position:relative;
+z-index:2;
 width:100%;
 max-width:430px;
 padding:28px;
-border-radius:28px;
+border-radius:30px;
 background:rgba(255,255,255,.07);
-backdrop-filter:blur(18px);
+backdrop-filter:blur(22px);
+-webkit-backdrop-filter:blur(22px);
 border:1px solid rgba(255,255,255,.08);
 box-shadow:0 25px 60px rgba(0,0,0,.45);
+animation:fade .8s ease;
 }
-h1{font-size:42px;text-align:center}
-.sub{text-align:center;opacity:.7;margin:8px 0 22px}
-input,button{
-width:100%;padding:16px;border:none;border-radius:18px;
-font-size:16px;margin-bottom:12px;
+
+@keyframes fade{
+from{opacity:0;transform:translateY(30px);}
+to{opacity:1;transform:translateY(0);}
 }
-input{background:rgba(255,255,255,.06);color:#fff;outline:none}
+
+.logo{
+font-size:42px;
+font-weight:800;
+text-align:center;
+letter-spacing:2px;
+}
+
+.sub{
+text-align:center;
+font-size:14px;
+opacity:.7;
+margin:6px 0 24px;
+}
+
+input{
+width:100%;
+padding:16px;
+border:none;
+outline:none;
+border-radius:18px;
+font-size:16px;
+margin-bottom:14px;
+background:rgba(255,255,255,.06);
+color:white;
+transition:.25s ease;
+}
+
+input:focus{
+transform:scale(1.02);
+box-shadow:0 0 0 2px #00ffd0;
+}
+
 button{
-font-weight:800;cursor:pointer;
+width:100%;
+padding:16px;
+border:none;
+border-radius:18px;
+font-size:16px;
+font-weight:800;
+cursor:pointer;
 background:linear-gradient(135deg,#00ffd0,#00b8ff);
-color:#03131b;
+color:#03151d;
+transition:.25s ease;
+box-shadow:0 12px 28px rgba(0,255,208,.22);
 }
+
+button:hover{
+transform:translateY(-2px) scale(1.02);
+}
+
 .result{
-margin-top:8px;padding:20px;border-radius:20px;
+margin-top:18px;
+padding:22px;
+border-radius:22px;
 background:rgba(255,255,255,.05);
-min-height:120px;
-display:flex;align-items:center;justify-content:center;
-text-align:center;line-height:1.5;
+min-height:140px;
+display:flex;
+justify-content:center;
+align-items:center;
+text-align:center;
+line-height:1.55;
+font-size:22px;
+font-weight:700;
 }
-.small{font-size:14px;opacity:.72}
+
+.small{
+font-size:14px;
+opacity:.72;
+font-weight:500;
+}
+
+.footer{
+margin-top:15px;
+text-align:center;
+font-size:13px;
+opacity:.55;
+}
 </style>
 </head>
+
 <body>
+
 <div class="card">
-<h1>TMF</h1>
-<div class="sub">The Mafia Forecast • Live</div>
+<div class="logo">TMF</div>
+<div class="sub">TMF Pro • Live Market Intelligence</div>
 
 <input id="pair" placeholder="XAU/USD, EUR/USD, BTC/USD">
-<button onclick="analyzePair()">Analyze Live Market</button>
+<button onclick="analyze()">Analyze Live</button>
 
-<div class="result" id="output">Awaiting pair input</div>
+<div class="result" id="output">Awaiting Pair Input</div>
+
+<div class="footer">Trend • Momentum • RSI • Volatility</div>
 </div>
 
 <script>
-const API_KEY =b772ae62a8ff4d57b77f886b8619b58c ;
 
-function ema(values, period){
-let k = 2 / (period + 1);
-let emaVal = values[0];
-for(let i=1;i<values.length;i++){
-emaVal = values[i] * k + emaVal * (1-k);
+/* PASTE YOUR API KEY HERE */
+const API_KEY = b772ae62a8ff4d57b77f886b8619b58c;
+
+function ema(arr, period){
+let k = 2/(period+1);
+let val = arr[0];
+for(let i=1;i<arr.length;i++){
+val = arr[i]*k + val*(1-k);
 }
-return emaVal;
+return val;
 }
 
-function rsi(values){
-let gains = 0, losses = 0;
-for(let i=1;i<values.length;i++){
-let diff = values[i] - values[i-1];
-if(diff > 0) gains += diff;
+function rsi(arr){
+let gains=0, losses=0;
+for(let i=1;i<arr.length;i++){
+let diff = arr[i]-arr[i-1];
+if(diff>0) gains += diff;
 else losses -= diff;
 }
-if(losses === 0) return 100;
-let rs = gains / losses;
+if(losses===0) return 100;
+let rs = gains/losses;
 return 100 - (100/(1+rs));
 }
 
-async function analyzePair(){
-const pairInput = document.getElementById("pair").value.trim().toUpperCase();
-const pair = pairInput.replace("/", "");
-const out = document.getElementById("output");
+function volatility(arr){
+let total=0;
+for(let i=1;i<arr.length;i++){
+total += Math.abs(arr[i]-arr[i-1]);
+}
+return total/(arr.length-1);
+}
 
-if(!pair){
-out.innerHTML = "Enter a valid pair";
+async function analyze(){
+
+const input = document.getElementById("pair").value.trim().toUpperCase();
+const pair = input.replace("/","");
+const output = document.getElementById("output");
+
+if(pair===""){
+output.innerHTML="Enter a valid pair";
 return;
 }
 
-out.innerHTML = "Scanning live market...";
+output.innerHTML="Scanning live market...";
 
 try{
-const url =
-`https://api.twelvedata.com/time_series?symbol=${pair}&interval=5min&outputsize=30&apikey=${API_KEY}`;
+
+const url = `https://api.twelvedata.com/time_series?symbol=${pair}&interval=5min&outputsize=40&apikey=${API_KEY}`;
 
 const res = await fetch(url);
 const data = await res.json();
 
 if(!data.values){
-out.innerHTML = "Pair not found or API limit reached.";
+output.innerHTML="Pair not found / API issue";
 return;
 }
 
-const closes = data.values.reverse().map(c => parseFloat(c.close));
+const closes = data.values.reverse().map(v=>parseFloat(v.close));
 
-const fast = ema(closes, 5);
-const slow = ema(closes, 12);
-const strength = rsi(closes);
-const momentum = closes[closes.length-1] - closes[closes.length-4];
+let fast = ema(closes,5);
+let slow = ema(closes,12);
+let power = rsi(closes);
+let vol = volatility(closes);
+let momentum = closes[closes.length-1] - closes[closes.length-4];
 
 let score = 0;
 
@@ -123,35 +246,44 @@ else score -= 35;
 if(momentum > 0) score += 25;
 else score -= 25;
 
-if(strength < 35) score += 20;
-if(strength > 65) score -= 20;
+if(power < 35) score += 20;
+if(power > 65) score -= 20;
 
-const confidence = Math.min(Math.abs(score) + 40, 95);
+if(vol > 0.5) score += 10;
 
-let signal = "⚖️ WAIT";
-let note = "No clear edge";
+let confidence = Math.floor(Math.min(Math.abs(score)+38,95));
 
-if(score > 15){
-signal = "📈 BUY";
-note = "Bullish alignment detected";
-}else if(score < -15){
-signal = "📉 SELL";
-note = "Bearish alignment detected";
+let signal="", bias="";
+
+if(score > 18){
+signal="📈 BUY";
+bias="Bullish Trend Confirmed";
+}
+else if(score < -18){
+signal="📉 SELL";
+bias="Bearish Pressure Confirmed";
+}
+else{
+signal="⚖️ WAIT";
+bias="No clean setup";
 }
 
-out.innerHTML = `
+output.innerHTML = `
 <div>
 ${signal}<br>
 <span class="small">${pair}</span><br>
 <span class="small">${confidence}% confidence</span><br>
-<span class="small">RSI: ${strength.toFixed(1)} • ${note}</span>
+<span class="small">RSI ${power.toFixed(1)} • ${bias}</span>
 </div>
 `;
 
-}catch(err){
-out.innerHTML = "Error loading live data.";
+}catch(e){
+output.innerHTML="Connection error";
 }
+
 }
+
 </script>
+
 </body>
 </html>
